@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  backend:
+    restart: always
+    container_name: "backend"
+    image: backend
+    environment:
+      - PG_HOST=db:5432
+      - PG_USERNAME=postgres
+      - PG_PASSWORD=postgres
+      - PG_DATABASE=postgres
+      - SECRET_KEY=
+      - FCSAPI_API_KEY=
+    build:
+      context: ./finances_backend
+    command: /bin/sh -c "/app/backend.sh"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - custom
+
+  frontend:
+    restart: always
+    container_name: "frontend"
+    image: frontend
+    build:
+      context: ./finances_frontend
+      args:
+        REACT_APP_API_URL: http://127.0.0.1:8000/api/v1
+    ports:
+      - "3000:80"
+  db:
+    container_name: "db"
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - custom
+
+networks:
+  custom:
+    driver: bridge
